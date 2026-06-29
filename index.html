@@ -1,0 +1,493 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Costos Subasta">
+<meta name="theme-color" content="#0E3B3C">
+<title>Calculadora de Costos · Vehículos de Subasta</title>
+<style>
+  :root{
+    --bg:#EEEAE1;
+    --panel:#FFFFFF;
+    --ink:#15201F;
+    --ink-soft:#4A5654;
+    --line:#CFC8BA;
+    --petrol:#0E3B3C;
+    --petrol-2:#155152;
+    --amber:#B96B0A;
+    --amber-soft:#F6E6CE;
+    --green:#1C6B3C;
+    --green-soft:#DDF0E2;
+    --focus:#0E3B3C;
+    --radius:14px;
+    --shadow:0 2px 0 rgba(21,32,31,.08), 0 10px 24px rgba(21,32,31,.06);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+    font-size:20px;
+    line-height:1.45;
+    -webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:840px;margin:0 auto;padding:22px 18px 64px}
+
+  header.app{
+    background:var(--petrol);
+    color:#fff;
+    border-radius:var(--radius);
+    padding:22px 24px;
+    box-shadow:var(--shadow);
+  }
+  header.app h1{
+    margin:0;
+    font-size:30px;
+    line-height:1.15;
+    letter-spacing:.2px;
+    font-weight:800;
+  }
+  header.app p{margin:8px 0 0;font-size:18px;color:#CFE3E1}
+
+  .tabs{display:flex;gap:10px;margin:18px 0}
+  .tab{
+    flex:1;
+    appearance:none;
+    border:2px solid var(--petrol);
+    background:#fff;
+    color:var(--petrol);
+    font-size:19px;
+    font-weight:800;
+    padding:14px 10px;
+    border-radius:12px;
+    cursor:pointer;
+  }
+  .tab[aria-selected="true"]{background:var(--petrol);color:#fff}
+  .tab:focus-visible{outline:4px solid var(--amber);outline-offset:2px}
+
+  section.view[hidden]{display:none}
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:22px;
+    margin-bottom:18px;
+  }
+  .card h2{margin:0 0 4px;font-size:22px;font-weight:800}
+  .card .hint{margin:0 0 18px;color:var(--ink-soft);font-size:17px}
+
+  label.field{display:block;margin:0 0 6px;font-weight:700;font-size:19px}
+  .money-input{position:relative}
+  .money-input .sym{
+    position:absolute;left:16px;top:50%;transform:translateY(-50%);
+    font-size:24px;font-weight:800;color:var(--ink-soft);pointer-events:none
+  }
+  input[type="text"],input[type="number"]{
+    width:100%;
+    font-size:26px;
+    font-weight:700;
+    padding:16px 16px 16px 40px;
+    border:2px solid var(--line);
+    border-radius:12px;
+    background:#FBFAF7;
+    color:var(--ink);
+    font-variant-numeric:tabular-nums;
+  }
+  input.plain{padding-left:16px}
+  input:focus{outline:4px solid var(--amber);outline-offset:1px;border-color:var(--petrol)}
+
+  /* Config rows */
+  .row{
+    display:grid;
+    grid-template-columns:1fr 220px 170px;
+    gap:12px;
+    align-items:end;
+    padding:14px 0;
+    border-top:1px solid var(--line);
+  }
+  .row:first-of-type{border-top:0}
+  .row .name{font-weight:700;font-size:19px;padding-bottom:14px}
+  .seg{display:flex;border:2px solid var(--petrol);border-radius:10px;overflow:hidden}
+  .seg button{
+    flex:1;appearance:none;border:0;background:#fff;color:var(--petrol);
+    font-size:16px;font-weight:800;padding:12px 6px;cursor:pointer;
+  }
+  .seg button[aria-pressed="true"]{background:var(--petrol);color:#fff}
+  .seg button:focus-visible{outline:3px solid var(--amber);outline-offset:-3px}
+  .val .money-input .sym{font-size:20px}
+  .val input{font-size:21px;padding:12px 12px 12px 34px}
+  .val input.pct{padding-left:14px}
+  .val .unit{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-weight:800;color:var(--ink-soft)}
+
+  .actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px}
+  .btn{
+    appearance:none;border:0;border-radius:12px;cursor:pointer;
+    font-size:19px;font-weight:800;padding:15px 22px;
+  }
+  .btn.primary{background:var(--amber);color:#fff}
+  .btn.ghost{background:#fff;border:2px solid var(--petrol);color:var(--petrol)}
+  .btn:focus-visible{outline:4px solid var(--petrol);outline-offset:2px}
+  .saved{font-weight:800;color:var(--green);font-size:18px;align-self:center}
+  .tc-field{margin-top:20px;padding-top:18px;border-top:1px solid var(--line)}
+
+  /* Breakdown */
+  .line{
+    display:flex;justify-content:space-between;align-items:baseline;gap:14px;
+    padding:13px 0;border-top:1px solid var(--line);
+  }
+  .line:first-child{border-top:0}
+  .line .lbl{font-size:19px}
+  .line .lbl small{display:block;color:var(--ink-soft);font-size:14px;font-weight:700}
+  .line .amt{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+  .total{
+    margin-top:6px;background:var(--amber-soft);border:2px solid var(--amber);
+    border-radius:12px;padding:18px 20px;display:flex;justify-content:space-between;align-items:center;gap:14px;
+  }
+  .total .t-lbl{font-size:20px;font-weight:800;color:#6e3f06}
+  .total .t-amt{font-size:30px;font-weight:900;color:#6e3f06;font-variant-numeric:tabular-nums}
+
+  .sale{
+    background:var(--petrol);color:#fff;border-radius:14px;padding:24px 22px;text-align:center;
+  }
+  .sale .s-lbl{font-size:19px;font-weight:800;color:#CFE3E1;letter-spacing:.4px;text-transform:uppercase}
+  .sale .s-amt{font-size:48px;line-height:1.05;font-weight:900;margin-top:6px;font-variant-numeric:tabular-nums}
+  .sale .s-amt-usd{font-size:32px;line-height:1.05;font-weight:800;color:#9FE3B6;margin-top:4px;font-variant-numeric:tabular-nums}
+  .sale .s-sub{margin-top:10px;font-size:18px;color:#CFE3E1}
+  .sale .s-sub b{color:#9FE3B6}
+
+  .empty{color:var(--ink-soft);font-size:19px;text-align:center;padding:18px 0}
+
+  @media (max-width:620px){
+    body{font-size:19px}
+    .row{grid-template-columns:1fr;gap:8px;align-items:stretch}
+    .row .name{padding-bottom:2px}
+    .tabs{flex-direction:column}
+    .sale .s-amt{font-size:40px}
+  }
+  @media (prefers-reduced-motion:no-preference){
+    .tab,.btn,.seg button{transition:background .15s ease,color .15s ease}
+  }
+</style>
+
+<div class="wrap">
+  <header class="app">
+    <h1>Costo total de vehículo de subasta</h1>
+    <p>Configura una vez los costos. Después solo captura el precio de compra.</p>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="Vistas">
+    <button class="tab" id="tab-calc" role="tab" aria-selected="true" aria-controls="view-calc">Calculadora</button>
+    <button class="tab" id="tab-config" role="tab" aria-selected="false" aria-controls="view-config">Configuración inicial</button>
+  </div>
+
+  <!-- ===================== CALCULADORA ===================== -->
+  <section class="view" id="view-calc" role="tabpanel" aria-labelledby="tab-calc">
+    <div class="card">
+      <h2>Precio de compra</h2>
+      <p class="hint">El importe del vehículo en la subasta, en dólares (USD).</p>
+      <div class="money-input">
+        <span class="sym">$</span>
+        <input type="text" id="precioCompra" inputmode="decimal" placeholder="0" aria-label="Precio de compra en la subasta">
+      </div>
+    </div>
+
+    <div class="card" id="desglose">
+      <h2>Desglose de costos</h2>
+      <p class="hint">Calculado en automático según tu configuración.</p>
+      <div id="lineas"></div>
+      <div class="total">
+        <span class="t-lbl">TOTAL DE COSTOS</span>
+        <span class="t-amt" id="totalCostos">$0</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Margen de ganancia</h2>
+      <p class="hint">Elige cómo aplicar la ganancia sobre el total de costos.</p>
+      <div class="seg" id="margenTipo" style="max-width:360px;margin-bottom:14px">
+        <button type="button" data-m="pct" aria-pressed="true">Porcentaje (%)</button>
+        <button type="button" data-m="fijo" aria-pressed="false">Monto fijo ($)</button>
+      </div>
+      <div class="money-input">
+        <span class="sym" id="margenSym">%</span>
+        <input type="text" id="margenVal" inputmode="decimal" placeholder="0" aria-label="Valor del margen de ganancia">
+      </div>
+    </div>
+
+    <div class="card sale">
+      <div class="s-lbl">Precio de venta</div>
+      <div class="s-amt" id="precioVentaMXN">$0 MXN</div>
+      <div class="s-amt-usd" id="precioVentaUSD">US$ 0</div>
+      <div class="s-sub">Ganancia: <b id="ganancia">$0</b> · Margen sobre costo: <b id="margenReal">0%</b> · Tipo de cambio: <b id="tcShow">—</b></div>
+    </div>
+  </section>
+
+  <!-- ===================== CONFIGURACIÓN ===================== -->
+  <section class="view" id="view-config" role="tabpanel" aria-labelledby="tab-config" hidden>
+    <div class="card">
+      <h2>Costos estándar</h2>
+      <p class="hint">Para cada concepto elige <b>Monto fijo</b> (en dólares) o <b>% del precio de compra</b>. Se guarda y queda automático.</p>
+      <div id="configRows"></div>
+      <div class="tc-field">
+        <label class="field" for="tipoCambio">Tipo de cambio (pesos por dólar)</label>
+        <div class="money-input">
+          <span class="sym">$</span>
+          <input type="text" id="tipoCambio" inputmode="decimal" placeholder="0.00" aria-label="Tipo de cambio, pesos por dólar">
+        </div>
+        <p class="hint" style="margin-top:6px">El precio de venta en pesos se obtiene multiplicando el precio en dólares por este valor.</p>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="guardar">Guardar configuración</button>
+        <button class="btn ghost" id="restaurar">Restaurar valores de ejemplo</button>
+        <span class="saved" id="savedMsg" hidden>✓ Guardado</span>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // Conceptos de costo en el orden que pediste
+  var CONCEPTOS = [
+    {key:"liberacion", name:"Gastos de liberación de documentos"},
+    {key:"trasladoUS", name:"Traslado a San Diego / Calexico"},
+    {key:"nacionalizacion", name:"Gastos de nacionalización"},
+    {key:"trasladoEns", name:"Traslado a Ensenada"},
+    {key:"emplacado", name:"Emplacado"},
+    {key:"imprevistos", name:"Imprevistos de detallado"}
+  ];
+
+  // Valores de ejemplo (editables). type: "fijo" | "pct"
+  var DEFAULTS = {
+    liberacion:      {type:"fijo", value:3000},
+    trasladoUS:      {type:"fijo", value:2500},
+    nacionalizacion: {type:"fijo", value:18000},
+    trasladoEns:     {type:"fijo", value:2000},
+    emplacado:       {type:"fijo", value:4500},
+    imprevistos:     {type:"pct",  value:3},
+    margen:          {type:"pct",  value:20},
+    tipoCambio:      18.50
+  };
+
+  var STORE_KEY = "config:costos:v1";
+  var config = clone(DEFAULTS);
+
+  var fmt = new Intl.NumberFormat("es-MX",{style:"currency",currency:"MXN",maximumFractionDigits:0});
+  var fmtUSD = new Intl.NumberFormat("en-US",{maximumFractionDigits:0});
+  function money(n){ return fmt.format(isFinite(n)?n:0); }
+  function usd(n){ return "US$ " + fmtUSD.format(isFinite(n)?n:0); }
+  function clone(o){ return JSON.parse(JSON.stringify(o)); }
+  function num(s){
+    if(typeof s==="number") return s;
+    var v=parseFloat(String(s).replace(/[^0-9.\-]/g,""));
+    return isFinite(v)?v:0;
+  }
+
+  // ---------- Persistencia (memoria del navegador / app instalada) ----------
+  function loadConfig(){
+    try{
+      var raw = localStorage.getItem(STORE_KEY);
+      if(raw){
+        var saved = JSON.parse(raw);
+        Object.keys(DEFAULTS).forEach(function(k){
+          if(saved[k] !== undefined) config[k] = saved[k];
+        });
+      }
+    }catch(e){ /* primera vez o almacenamiento no disponible: usamos los valores por defecto */ }
+  }
+  function saveConfig(){
+    try{
+      localStorage.setItem(STORE_KEY, JSON.stringify(config));
+      return true;
+    }catch(e){ return false; }
+  }
+
+  // ---------- Construir filas de configuración ----------
+  function buildConfigRows(){
+    var host = document.getElementById("configRows");
+    host.innerHTML = "";
+    CONCEPTOS.forEach(function(c){
+      var cfg = config[c.key];
+      var row = document.createElement("div");
+      row.className = "row";
+      row.innerHTML =
+        '<div class="name">'+c.name+'</div>'+
+        '<div class="seg" role="group" aria-label="Tipo para '+c.name+'">'+
+          '<button type="button" data-key="'+c.key+'" data-type="fijo">Monto fijo</button>'+
+          '<button type="button" data-key="'+c.key+'" data-type="pct">% del precio</button>'+
+        '</div>'+
+        '<div class="val money-input">'+
+          '<span class="sym">$</span>'+
+          '<input type="text" inputmode="decimal" data-key="'+c.key+'" aria-label="Valor para '+c.name+'">'+
+        '</div>';
+      host.appendChild(row);
+      syncRow(c.key);
+    });
+  }
+
+  function syncRow(key){
+    var cfg = config[key];
+    // botones del segmento
+    document.querySelectorAll('.seg button[data-key="'+key+'"]').forEach(function(b){
+      b.setAttribute("aria-pressed", String(b.dataset.type===cfg.type));
+    });
+    // input + símbolo
+    var input = document.querySelector('.val input[data-key="'+key+'"]');
+    var sym = input.parentElement.querySelector(".sym");
+    if(cfg.type==="pct"){ sym.textContent="%"; input.classList.add("pct"); }
+    else { sym.textContent="$"; input.classList.remove("pct"); }
+    input.value = cfg.value ? String(cfg.value) : "";
+  }
+
+  // ---------- Cálculo ----------
+  function computoLinea(cfg, base){
+    if(cfg.type==="pct") return base * (num(cfg.value)/100);
+    return num(cfg.value);
+  }
+
+  function recalcular(){
+    var base = num(document.getElementById("precioCompra").value);
+    var host = document.getElementById("lineas");
+    host.innerHTML = "";
+
+    var total = base; // todos los montos en dólares (USD)
+    // línea del precio de compra
+    host.appendChild(linea("Precio de compra", usd(base), null));
+
+    CONCEPTOS.forEach(function(c){
+      var cfg = config[c.key];
+      var monto = computoLinea(cfg, base);
+      total += monto;
+      var sub = cfg.type==="pct" ? (num(cfg.value)+"% del precio de compra") : "Monto fijo (USD)";
+      host.appendChild(linea(c.name, usd(monto), sub));
+    });
+
+    document.getElementById("totalCostos").textContent = usd(total);
+
+    // Margen (en dólares)
+    var mCfg = config.margen;
+    var ganancia = mCfg.type==="pct" ? total*(num(mCfg.value)/100) : num(mCfg.value);
+    var ventaUSD = total + ganancia;
+    var margenReal = total>0 ? (ganancia/total*100) : 0;
+
+    // Conversión a pesos: precio de venta en dólares × tipo de cambio
+    var tc = num(config.tipoCambio);
+    var ventaMXN = ventaUSD * tc;
+
+    document.getElementById("ganancia").textContent = usd(ganancia);
+    document.getElementById("precioVentaMXN").textContent = tc>0 ? (money(ventaMXN) + " MXN") : "Define el tipo de cambio";
+    document.getElementById("precioVentaUSD").textContent = usd(ventaUSD);
+    document.getElementById("margenReal").textContent = (Math.round(margenReal*10)/10)+"%";
+    document.getElementById("tcShow").textContent = tc>0
+      ? ("$"+tc.toLocaleString("es-MX",{minimumFractionDigits:2,maximumFractionDigits:2}))
+      : "—";
+  }
+
+  function linea(label, amount, sub){
+    var d = document.createElement("div");
+    d.className="line";
+    d.innerHTML = '<div class="lbl">'+label+(sub?'<small>'+sub+'</small>':'')+'</div>'+
+                  '<div class="amt">'+amount+'</div>';
+    return d;
+  }
+
+  // ---------- Pestañas ----------
+  function setTab(which){
+    var calc = which==="calc";
+    document.getElementById("tab-calc").setAttribute("aria-selected", String(calc));
+    document.getElementById("tab-config").setAttribute("aria-selected", String(!calc));
+    document.getElementById("view-calc").hidden = !calc;
+    document.getElementById("view-config").hidden = calc;
+  }
+
+  // ---------- Eventos ----------
+  function wire(){
+    document.getElementById("tab-calc").addEventListener("click", function(){ setTab("calc"); });
+    document.getElementById("tab-config").addEventListener("click", function(){ setTab("config"); });
+
+    document.getElementById("precioCompra").addEventListener("input", recalcular);
+
+    document.getElementById("tipoCambio").addEventListener("input", function(e){
+      config.tipoCambio = num(e.target.value);
+      recalcular();
+    });
+
+    // Config: cambio de tipo (fijo/pct)
+    document.getElementById("configRows").addEventListener("click", function(e){
+      var b = e.target.closest(".seg button");
+      if(!b) return;
+      config[b.dataset.key].type = b.dataset.type;
+      syncRow(b.dataset.key);
+    });
+    // Config: cambio de valor
+    document.getElementById("configRows").addEventListener("input", function(e){
+      var inp = e.target.closest(".val input");
+      if(!inp) return;
+      config[inp.dataset.key].value = num(inp.value);
+    });
+
+    // Guardar / Restaurar
+    document.getElementById("guardar").addEventListener("click", async function(){
+      var ok = await saveConfig();
+      var msg = document.getElementById("savedMsg");
+      msg.textContent = ok ? "✓ Guardado" : "No se pudo guardar";
+      msg.style.color = ok ? "var(--green)" : "var(--amber)";
+      msg.hidden = false;
+      recalcular();
+      setTimeout(function(){ msg.hidden = true; }, 2200);
+    });
+    document.getElementById("restaurar").addEventListener("click", function(){
+      config = clone(DEFAULTS);
+      buildConfigRows();
+      buildTipoCambio();
+      buildMargin();
+      recalcular();
+    });
+
+    // Margen: tipo
+    document.getElementById("margenTipo").addEventListener("click", function(e){
+      var b = e.target.closest("button[data-m]");
+      if(!b) return;
+      config.margen.type = b.dataset.m;
+      buildMargin();
+      recalcular();
+    });
+    // Margen: valor
+    document.getElementById("margenVal").addEventListener("input", function(e){
+      config.margen.value = num(e.target.value);
+      recalcular();
+    });
+  }
+
+  function buildTipoCambio(){
+    var inp = document.getElementById("tipoCambio");
+    inp.value = config.tipoCambio ? String(config.tipoCambio) : "";
+  }
+
+  function buildMargin(){    var t = config.margen.type;
+    document.querySelectorAll('#margenTipo button[data-m]').forEach(function(b){
+      b.setAttribute("aria-pressed", String(b.dataset.m===t));
+    });
+    document.getElementById("margenSym").textContent = (t==="pct") ? "%" : "$";
+    var mv = document.getElementById("margenVal");
+    mv.classList.toggle("pct", t==="pct");
+    mv.value = config.margen.value ? String(config.margen.value) : "";
+  }
+
+  // ---------- Init ----------
+  (async function init(){
+    await loadConfig();
+    buildConfigRows();
+    buildTipoCambio();
+    buildMargin();
+    wire();
+    recalcular();
+  })();
+})();
+</script>
